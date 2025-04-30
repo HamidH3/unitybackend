@@ -11,26 +11,20 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY;
 
-console.log('✅ Server starting...');
-console.log('Using PORT:', PORT);
-console.log('Using API KEY:', API_KEY ? '[HIDDEN]' : '❌ MISSING');
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('🎉 Welcome to the AI Question API!');
-});
 
-// POST /ask
+
+// server receives the POST request
 app.post('/ask', async (req, res) => {
   try {
     const userPrompt = req.body.prompt;
 
     if (!userPrompt) {
+        //checks if the POST request has the body (prompt) that is assigned in questionGenerator
       return res.status(400).json({ error: 'Prompt is required in request body.' });
     }
 
-    console.log('📩 Received prompt:', userPrompt);
-
+    //now if the POST request has a body (prompt), this makes a new request body to GPT API
     const requestBody = {
       model: 'gpt-3.5-turbo',
       messages: [
@@ -40,26 +34,25 @@ app.post('/ask', async (req, res) => {
         },
         {
           role: 'user',
+          //this contains the prompt from QuestionGenerator in unity script
           content: userPrompt
         }
       ]
     };
-
+    //here post request to open AI using the API key in the environment variable
     const openAIResponse = await axios.post('https://api.openai.com/v1/chat/completions', requestBody, {
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json'
       }
     });
-
+    //message carries the content generated from gpt that 
     const message = openAIResponse.data.choices[0].message.content;
-    console.log('🧠 GPT Response:', message);
 
     let parsedJSON;
     try {
       parsedJSON = JSON.parse(message);
     } catch (parseError) {
-      console.error('❌ Failed to parse JSON:', parseError.message);
       return res.status(500).json({
         error: 'Failed to parse response from GPT model. Ensure it returns valid JSON.',
         rawResponse: message
@@ -68,12 +61,11 @@ app.post('/ask', async (req, res) => {
 
     return res.json(parsedJSON);
   } catch (err) {
-    console.error('🔥 Error in /ask route:', err.response?.data || err.message);
     return res.status(500).json({ error: 'Failed to fetch or process GPT response.' });
   }
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(` Server is currently running on http://localhost:${PORT}`);
 });
