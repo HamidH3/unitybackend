@@ -27,6 +27,10 @@ app.post('/ask', async (req, res) => {
     //now if the POST request has a body (prompt), this makes a new request body to GPT API
     const requestBody = {
       model: 'gpt-3.5-turbo',
+      temperature: 0.8,            
+      top_p: 1.0,                  
+      frequency_penalty: 0.5,      
+      presence_penalty: 0.4, 
       messages: [
         {
           role: 'system',
